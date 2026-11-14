@@ -80,3 +80,9 @@ variable "schedule_time_zone" {
   default     = "America/New_York"
   description = "IANA time zone for the Compute Instance Schedule."
 }
+
+variable "arc_sp_secret_id" {
+  type        = string
+  default     = ""
+  description = "Optional GCP Secret Manager secret ID holding the scoped Azure Arc onboarding SP secret."
+}

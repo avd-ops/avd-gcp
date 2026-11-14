@@ -18,6 +18,12 @@ GCP's `windows-cloud` public image project only publishes Windows Server images 
    - GCP's importer translates the VHD, injects VirtIO/NetKVM drivers, and installs the Compute Engine Guest Environment.
    - Delete the temporary `.vhd` from GCS once the Compute Engine image is ready.
 
-4. **Optionally harden in GCP (`packer/avd-win11-gcp`) & deploy (`01-hybrid`)**
-   - Pass the imported image family/name as `source_image` to `environments/example/01-hybrid`.
-   - Note: `enable_fslogix_netapp` remains `false` (local profiles) for Entra-joined-only estates.
+4. **Deploy (`01-hybrid`) & Complete Entra + Arc Registration**
+   - Pass the imported image family/name as `source_image` to `environments/example/01-hybrid` (with `enable_fslogix_netapp = false` for local profiles).
+   - **Entra ID join:** Unlike Azure VMs (`AADLoginForWindows`), Arc-enabled GCP VMs do not Entra-join automatically. Pass a bulk-enrollment provisioning package (`.ppkg`) to `scripts/arc-onboard.ps1 -EntraProvisioningPackagePath` (or enroll via Autopilot / OOBE).
+   - **Secrets & `CloudDeviceExtension`:** Store the scoped Arc onboarding SP secret in GCP Secret Manager (`arc_sp_secret_id`), never in GCE metadata. Once `azcmagent` reports `Connected`, run `scripts/Register-AvdHybridExtension.ps1` from Azure Cloud Shell to install `Microsoft.AzureVirtualDesktop.CloudDeviceExtension` with the host pool registration token.
+
+## Licensing & Compliance Note
+
+- `windows-11-x64-byol` boots on standard shared-tenancy VMs (`n2-standard-4`) for lab testing. For production workloads, verify Microsoft Windows client BYOL terms regarding **GCP Sole-Tenant Nodes**.
+
