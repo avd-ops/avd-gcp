@@ -17,9 +17,9 @@ Google Cloud Platform (GCP) session-host control plane (`avd-gcp`) for **Azure V
 ## What it does
 
 - **Networking (`modules/network`)**: Deploys a dedicated GCP VPC and private subnet with Cloud Router and Cloud NAT for outbound-only TCP `443` (Azure Arc + AVD service endpoints) and optional outbound UDP `3478` (RDP Shortpath). Blocks inbound internet RDP (`3389`).
-- **FSLogix Storage (`modules/storage`)**: Optionally deploys Google Cloud NetApp Volumes (SMB) for FSLogix profile containers (`enable_fslogix_netapp = false` by default in `lab` profile to prevent idle minimum-capacity charges).
+- **FSLogix Storage (`modules/storage`)**: Optional Google Cloud NetApp Volumes (SMB) for AD-joined estates (`enable_fslogix_netapp = false` by default in `lab` profile; Entra-joined-only estates use local profiles or Azure Files with Entra Kerberos).
 - **Session Hosts (`modules/compute`)**: Deploys Shielded Compute Engine VMs (Secure Boot + vTPM + Integrity Monitoring) running **single-session Windows 11 Enterprise** with **Entra ID join**, Cloud Instance Schedules (auto-stop/start, since AVD Autoscale and Start VM on Connect are unsupported on Hybrid), and idempotent Azure Arc + AVD `CloudDeviceExtension` registration (`scripts/arc-onboard.ps1`).
-- **Golden Image (`packer/avd-win11-gcp`)**: Packer HCL2 template (`googlecompute`) for Windows 11 Enterprise + FSLogix agent + WDOT optimization + pre-staged Azure Arc agent.
+- **Golden Image (`docs/image-pipeline.md`, `packer/avd-win11-gcp`)**: Because GCP `windows-cloud` only publishes Windows Server, Windows 11 Enterprise (single-session) is built in Azure (or locally) as a generalized VHD, transferred to GCS, and imported into Compute Engine via BYOL (`windows-11-x64-byol`).
 - **Contracts**: Emits `gcp-outputs.json` matching contract C32 (`avd-gcp-outputs/v1`) for `avd-azure`, `avd-landing-zone`, and `avd-current-state`.
 
 ## Quick start (offline validation)

@@ -23,8 +23,8 @@ variable "image_family" {
 }
 
 variable "source_image_family" {
-  type    = string
-  default = "windows-11-ent-24h2"
+  type        = string
+  description = "Imported BYOL Windows 11 Enterprise image family in GCP (windows-cloud only publishes Windows Server; see docs/image-pipeline.md)."
 }
 
 source "googlecompute" "avd_win11" {
