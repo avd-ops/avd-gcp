@@ -28,4 +28,9 @@ run "compute_shielded_mig_plan" {
     condition     = length(google_compute_resource_policy.schedule) == 1
     error_message = "Instance schedule should be created by default to avoid idle burn."
   }
+
+  assert {
+    condition     = google_service_account.session_host.account_id == "sa-avd-hosts-dev"
+    error_message = "Dedicated least-privilege service account must be created for session hosts."
+  }
 }
