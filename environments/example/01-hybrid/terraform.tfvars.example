@@ -1,0 +1,10 @@
+project_id               = "<gcp-project-id>"
+region                   = "us-central1"
+environment              = "dev"
+profile                  = "lab"
+source_image             = "projects/<gcp-project-id>/global/images/family/avd-win11-ent"
+session_host_count       = 1
+arc_resource_group       = "rg-avd-arc-dev"
+host_pool_name           = "hp-avd-hybrid-dev"
+enable_fslogix_netapp    = false
+enable_instance_schedule = true
