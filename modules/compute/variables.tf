@@ -41,6 +41,16 @@ variable "session_host_count" {
   description = "Target number of AVD Hybrid session hosts in the MIG."
 }
 
+variable "region_zone_count" {
+  type        = number
+  default     = 4
+  description = "Number of zones in the target GCP region (Regional MIG max_surge_fixed must be >= zone count when max_unavailable_fixed = 0)."
+  validation {
+    condition     = var.region_zone_count >= 1
+    error_message = "region_zone_count must be at least 1."
+  }
+}
+
 variable "arc_resource_group" {
   type        = string
   description = "Azure Resource Group name for Azure Arc-enabled servers."
@@ -54,31 +64,7 @@ variable "host_pool_name" {
 variable "startup_script_ps1" {
   type        = string
   default     = ""
-  description = "PowerShell startup script content for Entra join and Azure Arc + CloudDeviceExtension onboarding."
-}
-
-variable "enable_instance_schedule" {
-  type        = bool
-  default     = true
-  description = "Attach a GCP Compute Instance Schedule to stop hosts outside active hours."
-}
-
-variable "start_cron_schedule" {
-  type        = string
-  default     = "0 7 * * 1-5"
-  description = "Cron schedule to start session hosts (weekdays 07:00)."
-}
-
-variable "stop_cron_schedule" {
-  type        = string
-  default     = "0 19 * * 1-5"
-  description = "Cron schedule to stop session hosts (weekdays 19:00)."
-}
-
-variable "schedule_time_zone" {
-  type        = string
-  default     = "America/New_York"
-  description = "IANA time zone for the Compute Instance Schedule."
+  description = "PowerShell startup script content for Entra join and Azure Arc onboarding."
 }
 
 variable "arc_sp_secret_id" {

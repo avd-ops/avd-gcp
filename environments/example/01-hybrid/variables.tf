@@ -70,7 +70,20 @@ variable "host_pool_name" {
   description = "Azure AVD Hybrid host pool name."
 }
 
-variable "enable_instance_schedule" {
-  type    = bool
-  default = true
+variable "region_zone_count" {
+  type        = number
+  default     = 4
+  description = "Number of zones in the target GCP region for Regional MIG surge policy."
+}
+
+variable "arc_sp_secret_id" {
+  type        = string
+  default     = ""
+  description = "Optional GCP Secret Manager secret ID holding the scoped Azure Arc onboarding SP secret."
+}
+
+variable "startup_script_ps1" {
+  type        = string
+  default     = ""
+  description = "PowerShell startup script content for Entra join and Azure Arc onboarding."
 }

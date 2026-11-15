@@ -12,6 +12,7 @@ run "hybrid_root_c32_plan" {
     session_host_count = 1
     arc_resource_group = "rg-avd-arc-dev"
     host_pool_name     = "hp-avd-hybrid-dev"
+    arc_sp_secret_id   = "arc-sp-secret-dev"
   }
 
   assert {
@@ -22,5 +23,10 @@ run "hybrid_root_c32_plan" {
   assert {
     condition     = output.c32_gcp_outputs.fslogixStorageMode == "disabled"
     error_message = "Lab profile default should keep NetApp Volumes disabled."
+  }
+
+  assert {
+    condition     = module.compute.instance_group_name == "mig-avd-hosts-dev"
+    error_message = "Compute module should expose instance_group_name for the 01-hybrid environment."
   }
 }

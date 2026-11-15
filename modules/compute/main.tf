@@ -8,23 +8,6 @@ terraform {
   }
 }
 
-resource "google_compute_resource_policy" "schedule" {
-  count   = var.enable_instance_schedule ? 1 : 0
-  project = var.project_id
-  name    = "sched-avd-hosts-${var.environment}"
-  region  = var.region
-
-  instance_schedule_policy {
-    vm_start_schedule {
-      schedule = var.start_cron_schedule
-    }
-    vm_stop_schedule {
-      schedule = var.stop_cron_schedule
-    }
-    time_zone = var.schedule_time_zone
-  }
-}
-
 resource "google_service_account" "session_host" {
   project      = var.project_id
   account_id   = "sa-avd-hosts-${var.environment}"
@@ -70,7 +53,8 @@ resource "google_compute_instance_template" "session_host" {
     enable_integrity_monitoring = true
   }
 
-  resource_policies = var.enable_instance_schedule ? [google_compute_resource_policy.schedule[0].id] : []
+  # Note: GCP does not support attaching google_compute_resource_policy instance schedules
+  # to Regional MIG instance templates; use Cloud Scheduler / MIG target_size or standby policies.
 
   metadata = {
     enable-oslogin             = "FALSE"
@@ -100,7 +84,8 @@ resource "google_compute_region_instance_group_manager" "session_hosts" {
   update_policy {
     type                         = "PROACTIVE"
     minimal_action               = "REPLACE"
-    max_unavailable_fixed        = 1
+    max_unavailable_fixed        = 0
+    max_surge_fixed              = var.region_zone_count
     instance_redistribution_type = "PROACTIVE"
   }
 }
