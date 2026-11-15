@@ -25,8 +25,13 @@ run "compute_shielded_mig_plan" {
   }
 
   assert {
-    condition     = length(google_compute_resource_policy.schedule) == 1
-    error_message = "Instance schedule should be created by default to avoid idle burn."
+    condition     = length(google_compute_instance_template.session_host.resource_policies) == 0
+    error_message = "MIG instance template must not attach instance schedule resource_policies."
+  }
+
+  assert {
+    condition     = google_compute_region_instance_group_manager.session_hosts.update_policy[0].max_unavailable_fixed == 0 && google_compute_region_instance_group_manager.session_hosts.update_policy[0].max_surge_fixed == 4
+    error_message = "Regional MIG update_policy must use max_unavailable_fixed = 0 and max_surge_fixed >= zone count."
   }
 
   assert {

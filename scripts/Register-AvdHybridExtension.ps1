@@ -36,15 +36,28 @@ if (-not $regToken) {
 }
 
 $machines = az connectedmachine list --resource-group $ArcResourceGroup --query "[?status=='Connected'].name" -o json | ConvertFrom-Json
-foreach ($m in $machines) {
-    Write-Output "Registering Arc machine $m into host pool $HostPoolName..."
-    az connectedmachine extension create `
-        --resource-group $ArcResourceGroup `
-        --machine-name $m `
-        --name 'CloudDeviceExtension' `
-        --publisher 'Microsoft.AzureVirtualDesktop' `
-        --type 'CloudDeviceExtension' `
-        --location $Location `
-        --settings "{`"hostPoolName`":`"$HostPoolName`"}" `
-        --protected-settings "{`"registrationInfoToken`":`"$regToken`"}"
+$utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+$settingsJson = @{ hostPoolName = $HostPoolName } | ConvertTo-Json -Compress
+$protectedJson = @{ registrationToken = $regToken } | ConvertTo-Json -Compress
+
+$settingsFile = [System.IO.Path]::GetTempFileName()
+$protectedFile = [System.IO.Path]::GetTempFileName()
+try {
+    [System.IO.File]::WriteAllText($settingsFile, $settingsJson, $utf8NoBom)
+    [System.IO.File]::WriteAllText($protectedFile, $protectedJson, $utf8NoBom)
+
+    foreach ($m in $machines) {
+        Write-Output "Registering Arc machine $m into host pool $HostPoolName..."
+        az connectedmachine extension create `
+            --resource-group $ArcResourceGroup `
+            --machine-name $m `
+            --name 'CloudDeviceExtension' `
+            --publisher 'Microsoft.AzureVirtualDesktop' `
+            --type 'CloudDeviceExtension' `
+            --location $Location `
+            --settings "@$settingsFile" `
+            --protected-settings "@$protectedFile"
+    }
+} finally {
+    Remove-Item -Path $settingsFile, $protectedFile -Force -ErrorAction SilentlyContinue
 }

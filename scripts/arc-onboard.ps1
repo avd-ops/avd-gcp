@@ -66,7 +66,7 @@ if (-not $status -or $status.status -ne 'Connected') {
             -Uri 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token'
         $smUri = "https://secretmanager.googleapis.com/v1/projects/$GcpProjectId/secrets/$ArcSpSecretId/versions/latest:access"
         $smResp = Invoke-RestMethod -Headers @{ Authorization = "Bearer $($tokenResp.access_token)" } -Uri $smUri
-        $plainSpSecret = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($smResp.payload.data))
+        $plainSpSecret = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($smResp.payload.data)).Trim()
     } elseif ($ServicePrincipalSecret) {
         $bstrSp = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($ServicePrincipalSecret)
         try {

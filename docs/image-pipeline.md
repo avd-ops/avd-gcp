@@ -14,12 +14,14 @@ GCP's `windows-cloud` public image project only publishes Windows Server images 
    - Revoke the SAS token and delete the Azure staging VHD/snapshot immediately after transfer.
 
 3. **Import into Compute Engine (BYOL)**
+   - **Prerequisites:** Enable `vmmigration.googleapis.com`, create a `locations/global` `targetProject` resource (`gcloud migration vms target-projects create`), and grant `roles/storage.objectViewer` on the staging GCS bucket to the VM Migration service agent (`service-<project-number>@gcp-sa-vmmigration.iam.gserviceaccount.com`).
    - Run GCP's image import (`gcloud migration vms image-imports` with `--license-type=compute-engine-license-type-byol`, or `gcloud compute images import <image-name> --source-file=gs://<bucket>/<image>.vhd --os=windows-11-x64-byol --guest-os-features=UEFI_COMPATIBLE`).
    - GCP's importer translates the VHD, injects VirtIO/NetKVM drivers, and installs the Compute Engine Guest Environment.
    - Delete the temporary `.vhd` from GCS once the Compute Engine image is ready.
 
 4. **Deploy (`01-hybrid`) & Complete Entra + Arc Registration**
    - Pass the imported image family/name as `source_image` to `environments/example/01-hybrid` (with `enable_fslogix_netapp = false` for local profiles).
+   - **First-boot driver/agent setup:** On `vmmigration` BYOL images, `GoogleMigrateFirstboot` runs asynchronously on first boot (and may trigger a reboot). Wait for `GoogleMigrateFirstboot` to finish or keep `scripts/arc-onboard.ps1` idempotent across reboots.
    - **Entra ID join:** Unlike Azure VMs (`AADLoginForWindows`), Arc-enabled GCP VMs do not Entra-join automatically. Pass a bulk-enrollment provisioning package (`.ppkg`) to `scripts/arc-onboard.ps1 -EntraProvisioningPackagePath` (or enroll via Autopilot / OOBE).
    - **Secrets & `CloudDeviceExtension`:** Store the scoped Arc onboarding SP secret in GCP Secret Manager (`arc_sp_secret_id`), never in GCE metadata. Once `azcmagent` reports `Connected`, run `scripts/Register-AvdHybridExtension.ps1` from Azure Cloud Shell to install `Microsoft.AzureVirtualDesktop.CloudDeviceExtension` with the host pool registration token.
 
