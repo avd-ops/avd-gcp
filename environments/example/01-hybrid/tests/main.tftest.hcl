@@ -26,7 +26,7 @@ run "hybrid_root_c32_plan" {
   }
 
   assert {
-    condition     = length(module.compute.session_host_service_account_email) >= 0
-    error_message = "Compute module should expose session_host_service_account_email."
+    condition     = module.compute.instance_group_name == "mig-avd-hosts-dev"
+    error_message = "Compute module should expose instance_group_name for the 01-hybrid environment."
   }
 }

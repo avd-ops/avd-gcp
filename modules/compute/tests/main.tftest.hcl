@@ -25,7 +25,7 @@ run "compute_shielded_mig_plan" {
   }
 
   assert {
-    condition     = length(google_compute_instance_template.session_host.resource_policies) == 0
+    condition     = try(length(google_compute_instance_template.session_host.resource_policies), 0) == 0
     error_message = "MIG instance template must not attach instance schedule resource_policies."
   }
 
