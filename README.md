@@ -2,6 +2,8 @@
 
 Part of [avd-ops](https://avd-ops.dev/), the open toolkit for Azure Virtual Desktop.
 
+Google Cloud Platform (GCP) session-host control plane (`avd-gcp`) for **Azure Virtual Desktop (AVD) Hybrid** (ADR 0015). Provisions GCP Compute Engine session hosts, VPC/Cloud NAT egress, optional Google Cloud NetApp Volumes (SMB) for FSLogix, and Azure Arc + `Microsoft.AzureVirtualDesktop.CloudDeviceExtension` onboarding into an Azure-hosted AVD Hybrid host pool.
+
 > [!WARNING]
 > **Personal project. Research and learning only. Not for production. No warranty.**
 >
@@ -10,9 +12,15 @@ Part of [avd-ops](https://avd-ops.dev/), the open toolkit for Azure Virtual Desk
 > - It is provided **"as is", without warranty of any kind**, under the [MIT License](LICENSE). You use it at your own risk.
 > - **Contributions and forks are welcome and encouraged.** See [Contributing](#contributing).
 
-## Role in avd-ops
+## How it connects
 
-Google Cloud Platform (GCP) session-host control plane (`avd-gcp`) for **Azure Virtual Desktop (AVD) Hybrid** (ADR 0015). Provisions GCP Compute Engine session hosts, VPC/Cloud NAT egress, optional Google Cloud NetApp Volumes (SMB) for FSLogix, and Azure Arc + `Microsoft.AzureVirtualDesktop.CloudDeviceExtension` onboarding into an Azure-hosted AVD Hybrid host pool.
+| Direction | Repo | Relationship |
+|---|---|---|
+| Front door | [avd-ops](https://github.com/avd-ops/avd-ops#readme) | Overview and platform decisions |
+| Orchestrator | [avd-landing-zone](https://github.com/avd-ops/avd-landing-zone#readme) | Consumes `gcp-outputs.json` (`C32`) alongside Azure Hybrid host pools |
+| Azure sibling | [avd-azure](https://github.com/avd-ops/avd-azure#readme) | Hosts the Azure-side AVD Hybrid host pool and workspace |
+| Inventory | [avd-current-state](https://github.com/avd-ops/avd-current-state#readme) | Collects Arc-enabled hybrid session host state |
+| AWS sibling | [avd-aws](https://github.com/avd-ops/avd-aws#readme) | Companion AWS EC2 session-host control plane for AVD Hybrid |
 
 ## What it does
 
@@ -20,7 +28,7 @@ Google Cloud Platform (GCP) session-host control plane (`avd-gcp`) for **Azure V
 - **FSLogix Storage (`modules/storage`)**: Optional Google Cloud NetApp Volumes (SMB) for AD-joined estates (`enable_fslogix_netapp = false` by default in `lab` profile; Entra-joined-only estates use local profiles or Azure Files with Entra Kerberos).
 - **Session Hosts (`modules/compute`)**: Deploys Shielded Compute Engine VMs (Secure Boot + vTPM + Integrity Monitoring) running **single-session Windows 11 Enterprise** with **Entra ID join**, Cloud Instance Schedules (auto-stop/start, since AVD Autoscale and Start VM on Connect are unsupported on Hybrid), and idempotent Azure Arc + AVD `CloudDeviceExtension` registration (`scripts/arc-onboard.ps1`).
 - **Golden Image (`docs/image-pipeline.md`, `packer/avd-win11-gcp`)**: Because GCP `windows-cloud` only publishes Windows Server, Windows 11 Enterprise (single-session) is built in Azure (or locally) as a generalized VHD, transferred to GCS, and imported into Compute Engine via BYOL (`windows-11-x64-byol`).
-- **Contracts**: Emits `gcp-outputs.json` matching contract C32 (`avd-gcp-outputs/v1`) for `avd-azure`, `avd-landing-zone`, and `avd-current-state`.
+- **Contracts**: Emits `gcp-outputs.json` matching contract C32 (`avd-gcp-outputs/v1`) for [avd-azure](https://github.com/avd-ops/avd-azure#readme), [avd-landing-zone](https://github.com/avd-ops/avd-landing-zone#readme), and [avd-current-state](https://github.com/avd-ops/avd-current-state#readme).
 
 ## Quick start (offline validation)
 
@@ -29,6 +37,11 @@ for d in modules/*/ environments/example/*/; do
   (cd "$d" && terraform init -backend=false >/dev/null && terraform validate && terraform test)
 done
 ```
+
+## Docs
+
+- Image pipeline: [docs/image-pipeline.md](docs/image-pipeline.md)
+- Agent instructions & guardrails: [AGENTS.md](AGENTS.md)
 
 ## Contributing
 
